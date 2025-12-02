@@ -1,0 +1,19 @@
+node_modules
+.env
+.env.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Prisma engine/cache
+.prisma
+
+# Build outputs
+dist
+build
+
+# System files
+.DS_Store
+.vscode
