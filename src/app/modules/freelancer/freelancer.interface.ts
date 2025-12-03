@@ -5,6 +5,8 @@ export interface IFreelancer extends Document {
   bio?: string;
   skills: string[];
   portfolio?: string;
+  otherWebsiteLink?: string;
+  linkedinLink?: string;
   resume?: string;
   hourlyRate?: number;
   experience?: number;

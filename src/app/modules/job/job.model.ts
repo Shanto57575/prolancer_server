@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
-import { IJob } from "./job.interface.js";
-import { JobStatus } from "./job.constant.js";
+import { JobStatus } from "./job.constant";
+import { IJob } from "./job.interface";
 
 const jobSchema = new Schema<IJob>(
   {

@@ -5,14 +5,10 @@ import { clientController } from "./client.controller";
 const router = Router();
 
 router.get("/me", checkAuth("CLIENT"), clientController.getMyClientProfile);
-router.patch(
-  "/update",
-  checkAuth("CLIENT"),
-  clientController.updateClientProfile
-);
+router.patch("/me", checkAuth("CLIENT"), clientController.updateClientProfile);
 
-router.post("/job", checkAuth("CLIENT"), clientController.createJob);
-router.get("/jobs", checkAuth("CLIENT"), clientController.getMyJobs);
-router.get("/job/:id", checkAuth(), clientController.getJobById);
+router.post("/create-job", checkAuth("CLIENT"), clientController.createJob);
+router.get("/my-jobs", checkAuth("CLIENT"), clientController.getMyJobs);
+router.get("/:id", checkAuth(), clientController.getJobById);
 
-export default router;
+export const clientRoute = router;

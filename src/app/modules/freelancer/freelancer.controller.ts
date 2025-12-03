@@ -34,6 +34,8 @@ const updateFreelancerProfile = catchAsync(
       "experience",
       "designation",
       "location",
+      "otherWebsiteLink",
+      "linkedinLink",
     ];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload: Record<string, any> = {};

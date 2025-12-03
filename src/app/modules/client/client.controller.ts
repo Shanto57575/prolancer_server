@@ -21,7 +21,14 @@ const updateClientProfile = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   if (!userId) throw new AppError(401, "Unauthorized");
 
-  const allowed = ["company", "website", "bio", "location", "designation"];
+  const allowed = [
+    "company",
+    "website",
+    "bio",
+    "location",
+    "designation",
+    "experience",
+  ];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: Record<string, any> = {};
   for (const field of allowed) {

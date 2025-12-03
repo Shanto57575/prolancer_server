@@ -13,6 +13,8 @@ const freelancerSchema = new Schema<IFreelancer>(
     skills: { type: [String], default: [] },
     portfolio: String,
     resume: String,
+    otherWebsiteLink: String,
+    linkedinLink: String,
     hourlyRate: Number,
     experience: Number,
     rating: Number,

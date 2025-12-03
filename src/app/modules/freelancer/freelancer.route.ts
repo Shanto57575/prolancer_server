@@ -12,12 +12,17 @@ router.get(
 );
 
 router.patch(
-  "/update",
+  "/me",
   checkAuth("FREELANCER"),
   freelancerController.updateFreelancerProfile
 );
 
-router.get("/all", checkAuth("ADMIN"), freelancerController.getAllFreelancers);
+router.get(
+  "/all-freelancers",
+  checkAuth("ADMIN"),
+  freelancerController.getAllFreelancers
+);
+
 router.get("/:id", checkAuth(), freelancerController.getFreelancerById);
 
-export default router;
+export const freelancerRoute = router;

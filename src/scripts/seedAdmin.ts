@@ -27,7 +27,7 @@ import { Provider, UserRole } from "../app/constants/enums";
     const admin = await User.create({
       email: adminEmail,
       password: hashedPassword,
-      name: "SkillTrade Admin",
+      name: "Prolancer Admin",
       role: UserRole.ADMIN,
       isVerified: true,
       authProviders: [

@@ -5,6 +5,8 @@ import { envConfig } from "../../config/envConfig";
 import { generateToken } from "../../utils/jwt";
 import { setAuthCookie } from "../../utils/setCookie";
 import { JwtPayload } from "jsonwebtoken";
+import { AppError } from "../../utils/AppError";
+import { sendResponse } from "../../utils/sendResponse";
 
 const registerController = catchAsync(async (req: Request, res: Response) => {
   const registeredUser = await userService.registerService(req.body);
@@ -36,6 +38,44 @@ const registerController = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyProfileController = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError(401, "Unauthorized Access");
+
+    const profile = await userService.getMyProfile(userId);
+
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Profile retrieved successfully",
+      data: profile,
+    });
+  }
+);
+
+const updateMyProfileController = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError(401, "Unauthorized");
+
+    const { name, profilePicture } = req.body;
+    const updatedUser = await userService.updateMyProfile(userId, {
+      name,
+      profilePicture,
+    });
+
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  }
+);
+
 export const userController = {
   registerController,
+  getMyProfileController,
+  updateMyProfileController,
 };
