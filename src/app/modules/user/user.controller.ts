@@ -33,7 +33,7 @@ const registerController = catchAsync(async (req: Request, res: Response) => {
 
   res.status(201).json({
     success: true,
-    message: "User created successfully",
+    message: "Account created successfully",
     user: registeredUser,
   });
 });
@@ -74,8 +74,51 @@ const updateMyProfileController = catchAsync(
   }
 );
 
+const getAllUsersController = catchAsync(
+  async (req: Request, res: Response) => {
+    const { page, limit, search, sortBy, sortOrder, role, isBanned } =
+      req.query;
+
+    const { data, meta } = await userService.getAllUsers({
+      page: Number(page),
+      limit: Number(limit),
+      search: search as string,
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as "asc" | "desc",
+      role: role as string,
+      isBanned: isBanned as string,
+    });
+
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "Users retrieved successfully",
+      data,
+      meta,
+    });
+  }
+);
+
+const banUserController = catchAsync(async (req: Request, res: Response) => {
+  const id = req.params.id;
+  if (!id) {
+    throw new AppError(400, "User ID is required");
+  }
+
+  const user = await userService.banUser(id);
+
+  return sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `User ${user.isBanned ? "banned" : "unbanned"} successfully`,
+    data: user,
+  });
+});
+
 export const userController = {
   registerController,
   getMyProfileController,
   updateMyProfileController,
+  getAllUsersController,
+  banUserController,
 };

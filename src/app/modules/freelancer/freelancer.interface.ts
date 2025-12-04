@@ -1,5 +1,11 @@
 import { Document, Types } from "mongoose";
 
+export enum Availability {
+  FullTime = "Full-Time",
+  PartTime = "Part-Time",
+  Hourly = "Hourly",
+}
+
 export interface IFreelancer extends Document {
   userId: Types.ObjectId;
   bio?: string;
@@ -13,4 +19,8 @@ export interface IFreelancer extends Document {
   rating?: number;
   location?: string;
   designation?: string;
+  languages: string[];
+  education: string[];
+  availability: Availability;
+  isProfileComplete: boolean;
 }

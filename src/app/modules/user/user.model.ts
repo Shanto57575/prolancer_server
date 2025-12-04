@@ -27,6 +27,7 @@ const UserSchema = new Schema<IUser>(
     },
     //for simplicity keeping all users verified later will implement email/otp verification
     isVerified: { type: Boolean, default: true },
+    isBanned: { type: Boolean, default: false },
     authProviders: {
       type: [AuthProviderSchema],
       default: [],

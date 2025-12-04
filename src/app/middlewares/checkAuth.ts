@@ -21,6 +21,8 @@ export const checkAuth =
 
     if (!user.isVerified)
       return next(new AppError(401, "User is not verified"));
+    if (user.isBanned)
+      return next(new AppError(401, "User is banned! contact support"));
 
     if (allowedRoles.length && !allowedRoles.includes(user.role)) {
       return next(new AppError(403, "Forbidden Access"));

@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IClient } from "./client.interface";
+import { BudgetPreference, CompanySize, IClient } from "./client.interface";
 
 const clientSchema = new Schema<IClient>(
   {
@@ -16,6 +16,18 @@ const clientSchema = new Schema<IClient>(
     experience: Number,
     rating: Number,
     designation: String,
+    companySize: {
+      type: String,
+      enum: Object.values(CompanySize),
+      default: CompanySize.SMALL,
+    },
+    budgetPreference: {
+      type: String,
+      enum: Object.values(BudgetPreference),
+      default: BudgetPreference.LOW,
+    },
+    isVerifiedClient: { type: Boolean, default: true },
+    isProfileComplete: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

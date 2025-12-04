@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Model } from "mongoose";
-import { Document } from "mongoose";
 
 interface IQueryOptions {
   page?: number;
@@ -17,10 +16,7 @@ function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const modelQuery = async <T extends Document>(
-  model: Model<T>,
-  options: IQueryOptions
-) => {
+const modelQuery = async <T = any>(model: Model<T>, options: IQueryOptions) => {
   const page = options.page && options.page > 0 ? options.page : 1;
   const limit = options.limit && options.limit > 0 ? options.limit : 20;
   const skip = (page - 1) * limit;

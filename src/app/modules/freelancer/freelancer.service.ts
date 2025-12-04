@@ -4,6 +4,7 @@ import modelQuery from "../../utils/modelQuery";
 import { AppError } from "../../utils/AppError";
 import Freelancer from "./freelancer.model";
 import User from "../user/user.model";
+import { checkFreelancerProfileComplete } from "../../utils/profileCompletion";
 
 const getByUserId = async (userId: string) => {
   if (!isValidObjectId(userId)) throw new AppError(400, "Invalid user id");
@@ -20,6 +21,7 @@ const getByUserId = async (userId: string) => {
 
 const updateByUserId = async (userId: string, payload: Record<string, any>) => {
   if (!isValidObjectId(userId)) throw new AppError(400, "Invalid user id");
+
   const profile = await Freelancer.findOneAndUpdate({ userId }, payload, {
     new: true,
     runValidators: true,
@@ -30,6 +32,13 @@ const updateByUserId = async (userId: string, payload: Record<string, any>) => {
   });
 
   if (!profile) throw new AppError(404, "Freelancer profile not found");
+
+  const isComplete = checkFreelancerProfileComplete(profile);
+  if (profile.isProfileComplete !== isComplete) {
+    profile.isProfileComplete = isComplete;
+    await profile.save();
+  }
+
   return profile;
 };
 

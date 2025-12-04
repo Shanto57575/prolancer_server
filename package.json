@@ -8,7 +8,9 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "lint": "eslint src --ext ts --fix",
-    "seed:admin": "ts-node ./src/scripts/seedAdmin.ts"
+    "seed:admin": "ts-node ./src/scripts/seed/seedAdmin.ts",
+    "migrate:fields": "ts-node ./src/scripts/migration/migrateNewFields.ts",
+    "migrate:isBanned": "ts-node ./src/scripts/migration/addIsBannedField.ts"
   },
   "keywords": [],
   "author": "",

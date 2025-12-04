@@ -31,7 +31,7 @@ const loginController = catchAsync(async (req: Request, res: Response) => {
 
   res.status(201).json({
     success: true,
-    message: "User Logged in successfully",
+    message: `Welcome back ${loggedInUser?.name?.split(" ")[0]}`,
     user: loggedInUser,
     token: accessToken,
   });

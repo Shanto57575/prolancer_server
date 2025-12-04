@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { IFreelancer } from "./freelancer.interface";
+import { Availability, IFreelancer } from "./freelancer.interface";
 
 const freelancerSchema = new Schema<IFreelancer>(
   {
@@ -15,11 +15,19 @@ const freelancerSchema = new Schema<IFreelancer>(
     resume: String,
     otherWebsiteLink: String,
     linkedinLink: String,
-    hourlyRate: Number,
-    experience: Number,
-    rating: Number,
+    hourlyRate: { type: Number, default: 0, min: 0 },
+    experience: { type: Number, default: 0, min: 0 },
+    rating: { type: Number, default: 0, min: 0, max: 5 },
     location: String,
     designation: String,
+    languages: { type: [String], default: [] },
+    education: { type: [String], default: [] },
+    availability: {
+      type: String,
+      enum: Availability,
+      default: Availability.Hourly,
+    },
+    isProfileComplete: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

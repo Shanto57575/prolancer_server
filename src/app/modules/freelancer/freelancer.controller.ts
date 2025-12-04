@@ -25,6 +25,22 @@ const updateFreelancerProfile = catchAsync(
     const userId = req.user?.id;
     if (!userId) throw new AppError(401, "Unauthorized");
 
+    //     bio: String,
+    // skills: { type: [String], default: [] },
+    // portfolio: String,
+    // resume: String,
+    // otherWebsiteLink: String,
+    // linkedinLink: String,
+    // hourlyRate: Number,
+    // experience: Number,
+    // rating: Number,
+    // location: String,
+    // designation: String,
+    // languages: { type: [String], default: [] },
+    // education: { type: [String], default: [] },
+    // availability: String,
+    // isProfileComplete: { type: Boolean, default: false },
+
     const allowed = [
       "bio",
       "skills",
@@ -36,6 +52,10 @@ const updateFreelancerProfile = catchAsync(
       "location",
       "otherWebsiteLink",
       "linkedinLink",
+      "languages",
+      "education",
+      "availability",
+      "isProfileComplete",
     ];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload: Record<string, any> = {};

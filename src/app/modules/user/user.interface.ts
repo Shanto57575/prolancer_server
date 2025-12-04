@@ -12,6 +12,7 @@ export interface IUser extends Document {
   name: string;
   role: string;
   isVerified: boolean;
+  isBanned: boolean;
   authProviders: IAuthProvider[];
   profilePicture?: string;
 }
