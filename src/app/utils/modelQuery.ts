@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Model } from "mongoose";
+import { Model, isValidObjectId } from "mongoose";
 
 interface IQueryOptions {
   page?: number;
@@ -10,6 +10,7 @@ interface IQueryOptions {
   filters?: Record<string, any>;
   searchableFields?: string[];
   projection?: any;
+  populate?: any;
 }
 
 function escapeRegExp(str: string) {
@@ -27,7 +28,6 @@ const modelQuery = async <T = any>(model: Model<T>, options: IQueryOptions) => {
 
   const andConditions = [];
 
-  /* ---------------------- Filters ---------------------- */
   if (options.filters) {
     for (const [key, value] of Object.entries(options.filters)) {
       if (value === undefined || value === null || value === "") continue;
@@ -40,9 +40,13 @@ const modelQuery = async <T = any>(model: Model<T>, options: IQueryOptions) => {
         andConditions.push({ [field]: { $lte: Number(value) } } as any);
       } else {
         if (typeof value === "string") {
-          andConditions.push({
-            [key]: { $regex: escapeRegExp(value), $options: "i" },
-          } as any);
+          if (isValidObjectId(value)) {
+            andConditions.push({ [key]: value } as any);
+          } else {
+            andConditions.push({
+              [key]: { $regex: escapeRegExp(value), $options: "i" },
+            } as any);
+          }
         } else {
           andConditions.push({ [key]: value } as any);
         }
@@ -50,7 +54,6 @@ const modelQuery = async <T = any>(model: Model<T>, options: IQueryOptions) => {
     }
   }
 
-  /* ---------------------- Search ----------------------- */
   if (options.search && options.searchableFields?.length) {
     const regex = new RegExp(escapeRegExp(options.search), "i");
     const orConditions = options.searchableFields.map((field) => ({
@@ -61,13 +64,24 @@ const modelQuery = async <T = any>(model: Model<T>, options: IQueryOptions) => {
 
   const finalFilter = andConditions.length ? { $and: andConditions } : {};
 
+  let query = model
+    .find(finalFilter, options.projection || null)
+    .skip(skip)
+    .limit(limit)
+    .sort(sort);
+
+  if (options.populate) {
+    if (Array.isArray(options.populate)) {
+      options.populate.forEach((pop) => {
+        query = query.populate(pop as any);
+      });
+    } else {
+      query = query.populate(options.populate as any);
+    }
+  }
+
   const [data, total] = await Promise.all([
-    model
-      .find(finalFilter, options.projection || null)
-      .skip(skip)
-      .limit(limit)
-      .sort(sort)
-      .lean(),
+    query.lean(),
     model.countDocuments(finalFilter),
   ]);
 

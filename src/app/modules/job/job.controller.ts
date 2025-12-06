@@ -72,8 +72,8 @@ const getMyJobs = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getJobById = catchAsync(async (req: Request, res: Response) => {
-  const result = await jobService.getJobById(req.params.id as string);
+const getJobBySlug = catchAsync(async (req: Request, res: Response) => {
+  const result = await jobService.getJobBySlug(req.params.slug as string);
 
   sendResponse(res, {
     statusCode: 200,
@@ -119,7 +119,7 @@ export const jobController = {
   createJob,
   getAllJobs,
   getMyJobs,
-  getJobById,
+  getJobBySlug,
   updateJob,
   deleteJob,
 };

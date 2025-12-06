@@ -15,6 +15,7 @@ router.get(
   checkAuth(UserRole.ADMIN),
   userController.getAllUsersController
 );
+
 router.patch(
   "/:id/ban",
   checkAuth(UserRole.ADMIN),

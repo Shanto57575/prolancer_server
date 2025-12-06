@@ -11,7 +11,7 @@ router.post(
   serviceController.createService
 );
 
-router.get("/all-services", checkAuth(), serviceController.getAllService);
+router.get("/all-services", serviceController.getAllService);
 router.get("/:id", checkAuth(UserRole.ADMIN), serviceController.getServiceById);
 router.put("/:id", checkAuth(UserRole.ADMIN), serviceController.updateService);
 router.delete(

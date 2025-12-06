@@ -14,6 +14,10 @@ interface EnvConfig {
   ACCESS_TOKEN_EXPIRES: string;
   REFRESH_TOKEN_SECRET: string;
   REFRESH_TOKEN_EXPIRES: string;
+  PUSHER_APP_ID: string;
+  PUSHER_KEY: string;
+  PUSHER_SECRET: string;
+  PUSHER_CLUSTER: string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -29,6 +33,10 @@ const loadEnvVariables = (): EnvConfig => {
     "ACCESS_TOKEN_EXPIRES",
     "REFRESH_TOKEN_SECRET",
     "REFRESH_TOKEN_EXPIRES",
+    "PUSHER_APP_ID",
+    "PUSHER_KEY",
+    "PUSHER_SECRET",
+    "PUSHER_CLUSTER",
   ];
 
   requiredVariables.forEach((variable) => {
@@ -49,6 +57,10 @@ const loadEnvVariables = (): EnvConfig => {
     ACCESS_TOKEN_EXPIRES: process.env.ACCESS_TOKEN_EXPIRES as string,
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string,
     REFRESH_TOKEN_EXPIRES: process.env.REFRESH_TOKEN_EXPIRES as string,
+    PUSHER_APP_ID: process.env.PUSHER_APP_ID as string,
+    PUSHER_KEY: process.env.PUSHER_KEY as string,
+    PUSHER_SECRET: process.env.PUSHER_SECRET as string,
+    PUSHER_CLUSTER: process.env.PUSHER_CLUSTER as string,
   };
 };
 

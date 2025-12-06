@@ -30,6 +30,7 @@ const jobSchema = new Schema<IJob>(
 
     serviceCategory: {
       type: String,
+      ref: "Service",
       required: true,
     },
 
@@ -95,6 +96,11 @@ const jobSchema = new Schema<IJob>(
       type: [Schema.Types.ObjectId],
       ref: "User",
       default: [],
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

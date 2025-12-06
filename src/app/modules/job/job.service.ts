@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isValidObjectId } from "mongoose";
+import { isValidObjectId, Types } from "mongoose";
 import { AppError } from "../../utils/AppError";
 import Job from "./job.model";
 import Client from "../client/client.model";
@@ -58,64 +58,80 @@ const createJob = async (payload: Partial<IJob> & { userId: string }) => {
     attachments: Array.isArray(attachments) ? attachments : [],
     deadline: deadline ?? null,
     status: JobStatus.OPEN,
+    isDeleted: false,
   });
 
   return job;
 };
 
 const getAllJobs = async (options: any) => {
+  const filters = { ...options.filters, isDeleted: false };
+  console.log({ filters });
+
   return modelQuery(Job, {
     page: options.page,
     limit: options.limit,
     search: options.search,
     sortBy: options.sortBy,
     sortOrder: options.sortOrder,
-    searchableFields: [
-      "title",
-      "description",
-      "requiredSkills",
-      "serviceCategory",
-    ],
-    filters: options.filters,
+    searchableFields: ["title", "description", "requiredSkills"],
+    filters,
     projection: { applicants: 0 },
+    populate: { path: "serviceCategory", select: "name" },
   });
 };
 
 const getMyJobs = async (userId: string, options: any) => {
   if (!isValidObjectId(userId)) throw new AppError(400, "Invalid user id");
 
-  return modelQuery(Job, {
+  const filters = {
+    ...options.filters,
+    clientId: new Types.ObjectId(userId),
+    isDeleted: false,
+  };
+
+  const response = await modelQuery(Job, {
     page: options.page,
     limit: options.limit,
     search: options.search,
     sortBy: options.sortBy,
     sortOrder: options.sortOrder,
     searchableFields: ["title", "description"],
-    filters: { ...options.filters, clientId: userId },
+    filters,
+    populate: { path: "serviceCategory", select: "name" },
   });
+
+  return response;
 };
 
-const getJobById = async (id: string) => {
-  if (!isValidObjectId(id)) throw new AppError(400, "Invalid job id");
+const getJobBySlug = async (slug: string) => {
+  const query = { slug, isDeleted: false };
 
-  const job = await Job.findById(id).populate({
-    path: "clientId",
-    select: "name email profilePicture",
-    model: User,
-  });
+  const job = await Job.findOne(query)
+    .populate({
+      path: "clientId",
+      select: "name email profilePicture",
+      model: User,
+    })
+    .populate({
+      path: "serviceCategory",
+      select: "name",
+    });
 
   if (!job) throw new AppError(404, "Job not found");
   return job;
 };
 
 const updateJob = async (
-  id: string,
+  idOrSlug: string,
   userId: string,
   payload: Partial<IJob>
 ) => {
-  if (!isValidObjectId(id)) throw new AppError(400, "Invalid job id");
+  const query = isValidObjectId(idOrSlug)
+    ? { _id: idOrSlug, isDeleted: false }
+    : { slug: idOrSlug, isDeleted: false };
 
-  const job = await Job.findById(id);
+  const job = await Job.findOne(query);
   if (!job) throw new AppError(404, "Job not found");
 
   if (job.clientId.toString() !== userId) {
@@ -145,7 +161,7 @@ const updateJob = async (
     }
   }
 
-  const updatedJob = await Job.findByIdAndUpdate(id, updates, {
+  const updatedJob = await Job.findOneAndUpdate(query, updates, {
     new: true,
     runValidators: true,
   });
@@ -153,17 +169,20 @@ const updateJob = async (
   return updatedJob;
 };
 
-const deleteJob = async (id: string, userId: string) => {
-  if (!isValidObjectId(id)) throw new AppError(400, "Invalid job id");
+const deleteJob = async (idOrSlug: string, userId: string) => {
+  const query = isValidObjectId(idOrSlug)
+    ? { _id: idOrSlug, isDeleted: false }
+    : { slug: idOrSlug, isDeleted: false };
 
-  const job = await Job.findById(id);
+  const job = await Job.findOne(query);
   if (!job) throw new AppError(404, "Job not found");
 
   if (job.clientId.toString() !== userId) {
     throw new AppError(403, "You are not authorized to delete this job");
   }
 
-  await Job.findByIdAndDelete(id);
+  job.isDeleted = true;
+  await job.save();
   return job;
 };
 
@@ -171,7 +190,7 @@ export const jobService = {
   createJob,
   getAllJobs,
   getMyJobs,
-  getJobById,
+  getJobBySlug,
   updateJob,
   deleteJob,
 };

@@ -40,7 +40,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.0.0",
-    "uploadthing": "^7.7.4",
-    "zod": "^4.1.13"
+    "node-cron": "^4.2.1",
+    "pusher": "^5.2.0",
+    "uploadthing": "^7.7.4"
   }
 }

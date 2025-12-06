@@ -13,8 +13,8 @@ router.patch("/:id", checkAuth(UserRole.CLIENT), jobController.updateJob);
 
 router.delete("/:id", checkAuth(UserRole.CLIENT), jobController.deleteJob);
 
-router.get("/", checkAuth(UserRole.ADMIN), jobController.getAllJobs);
+router.get("/", jobController.getAllJobs);
 
-router.get("/:id", checkAuth(), jobController.getJobById);
+router.get("/:slug", jobController.getJobBySlug);
 
 export const jobRoutes = router;

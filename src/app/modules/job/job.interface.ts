@@ -27,4 +27,5 @@ export interface IJob extends Document {
 
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted: boolean;
 }
