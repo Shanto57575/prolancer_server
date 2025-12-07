@@ -180,8 +180,8 @@ const updateApplicationStatus = async (
     const { chatService } = await import("../chat/chat.service");
 
     await chatService.createChatRoom(
-      (job as any)._id,
-      (job as any).clientId,
+      (job as any)._id.toString(),
+      (job as any).clientId.toString(),
       application.freelancerId.toString()
     );
   }

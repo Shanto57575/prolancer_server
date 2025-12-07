@@ -7,13 +7,11 @@ import { sendResponse } from "../../utils/sendResponse";
 const createApplication = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user?.id;
   const { jobId } = req.body;
-  console.log("JOBID", jobId);
 
   if (!userId) throw new AppError(401, "Unauthorized Access");
   if (!jobId) throw new AppError(400, "Job ID is required");
 
   const result = await applicationService.createApplication({ userId, jobId });
-  console.log("result", result);
   sendResponse(res, {
     statusCode: 201,
     success: true,

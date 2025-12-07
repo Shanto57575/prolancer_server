@@ -7,6 +7,7 @@ import compression from "compression";
 import { envConfig } from "./app/config/envConfig";
 import { notFound } from "./app/middlewares/notFound";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
+import morgan from "morgan";
 
 const app: Application = express();
 
@@ -29,6 +30,7 @@ app.use(
 );
 
 app.use(compression());
+app.use(morgan("dev"));
 
 app.get("/", (_req, res) => {
   res.status(200).json({

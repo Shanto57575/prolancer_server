@@ -63,9 +63,24 @@ const createChat = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const triggerTyping = catchAsync(async (req: Request, res: Response) => {
+  const { chatId } = req.params;
+  const userId = req.user.id as string;
+
+  await chatService.triggerTyping(chatId as string, userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Typing event triggered",
+    data: null,
+  });
+});
+
 export const chatController = {
   sendMessage,
   getMyChatRooms,
   getChatDetails,
   createChat,
+  triggerTyping,
 };

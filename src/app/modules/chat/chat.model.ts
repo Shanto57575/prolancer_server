@@ -5,20 +5,24 @@ const messageSchema = new Schema<IMessage>(
   {
     senderId: {
       type: Schema.Types.ObjectId,
-      ref: "User", // Can be Client or Freelancer (User model)
+      ref: "User",
       required: true,
     },
     content: {
       type: String,
-      required: true,
+      required: false,
     },
-    attachments: [
-      {
-        name: String,
-        url: String,
-        type: String, // 'pdf', 'image', etc.
-      },
-    ],
+    attachments: {
+      type: [
+        {
+          name: { type: String, required: true },
+          url: { type: String, required: true },
+          type: { type: String, required: true },
+          size: { type: Number, required: false },
+        },
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -54,7 +58,6 @@ const chatRoomSchema = new Schema<IChatRoom>(
   }
 );
 
-// Index for quick lookup of existing chats
 chatRoomSchema.index({ jobId: 1, freelancerId: 1 }, { unique: true });
 
 export const ChatRoom = model<IChatRoom>("ChatRoom", chatRoomSchema);

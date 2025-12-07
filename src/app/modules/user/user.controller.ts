@@ -44,7 +44,6 @@ const getMyProfileController = catchAsync(
     if (!userId) throw new AppError(401, "Unauthorized Access");
 
     const profile = await userService.getMyProfile(userId);
-    console.log(profile);
 
     return sendResponse(res, {
       statusCode: 200,

@@ -8,6 +8,7 @@ export interface IMessage {
     name: string;
     url: string;
     type: string;
+    size?: number;
   }[];
   createdAt?: Date;
 }

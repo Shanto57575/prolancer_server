@@ -76,7 +76,6 @@ const registerService = async (payload: IUser) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.log("error from registerService", error);
     throw error;
   }
 };

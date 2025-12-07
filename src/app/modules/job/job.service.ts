@@ -66,7 +66,6 @@ const createJob = async (payload: Partial<IJob> & { userId: string }) => {
 
 const getAllJobs = async (options: any) => {
   const filters = { ...options.filters, isDeleted: false };
-  console.log({ filters });
 
   return modelQuery(Job, {
     page: options.page,
