@@ -7,6 +7,8 @@ import { serviceRoute } from "../modules/service/service.route";
 import { jobRoutes } from "../modules/job/job.route";
 import { applicationRoutes } from "../modules/application/application.route";
 import { chatRoutes } from "../modules/chat/chat.route";
+import { NotificationRoutes } from "../modules/notification/notification.route";
+import { dashboardRoutes } from "../modules/dashboard/dashboard.route";
 
 const router = express.Router();
 
@@ -43,6 +45,14 @@ const moduleRoutes = [
   {
     path: "/chats",
     router: chatRoutes,
+  },
+  {
+    path: "/notification",
+    router: NotificationRoutes,
+  },
+  {
+    path: "/dashboard",
+    router: dashboardRoutes,
   },
 ];
 

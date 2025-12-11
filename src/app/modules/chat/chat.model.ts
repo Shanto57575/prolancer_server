@@ -23,6 +23,10 @@ const messageSchema = new Schema<IMessage>(
       ],
       default: [],
     },
+    readAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

@@ -1,5 +1,11 @@
 import { Document } from "mongoose";
 
+export enum UserRole {
+  ADMIN = "ADMIN",
+  CLIENT = "CLIENT",
+  FREELANCER = "FREELANCER",
+}
+
 export interface IAuthProvider {
   provider: string;
   providerId: string;

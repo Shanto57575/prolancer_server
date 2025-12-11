@@ -77,10 +77,25 @@ const triggerTyping = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const markMessagesAsRead = catchAsync(async (req: Request, res: Response) => {
+  const { chatId } = req.params;
+  const userId = req.user.id as string;
+
+  await chatService.markMessagesAsRead(chatId as string, userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Messages marked as read",
+    data: null,
+  });
+});
+
 export const chatController = {
   sendMessage,
   getMyChatRooms,
   getChatDetails,
   createChat,
   triggerTyping,
+  markMessagesAsRead,
 };

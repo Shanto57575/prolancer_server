@@ -4,6 +4,7 @@ import { AppError } from "../../utils/AppError";
 import Freelancer from "../freelancer/freelancer.model";
 import { ChatRoom } from "./chat.model";
 import pusher from "../../utils/pusher";
+import { NotificationService } from "../notification/notification.service";
 
 const createChatRoom = async (
   jobId: string,
@@ -67,15 +68,39 @@ const sendMessage = async (
     }
   }
 
-  const chat = await ChatRoom.findById(chatId);
+  // Populate to get user details for notification
+  const chat = await ChatRoom.findById(chatId)
+    .populate("clientId", "name profilePicture")
+    .populate("freelancerId", "name profilePicture");
+
   if (!chat) throw new AppError(404, "Chat room not found");
 
   // Verify participation
-  const clientId = chat.clientId.toString();
-  const freelancerId = chat.freelancerId.toString();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clientUser = chat.clientId as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const freelancerUser = chat.freelancerId as any;
+
+  const clientId = clientUser._id.toString();
+  const freelancerId = freelancerUser._id.toString();
 
   if (clientId !== senderId && freelancerId !== senderId) {
     throw new AppError(403, "You are not a participant in this chat");
+  }
+
+  // Identify receiver
+  let receiverId: string;
+  let senderName: string;
+  let senderPicture: string;
+
+  if (clientId === senderId) {
+    receiverId = freelancerId;
+    senderName = clientUser.name;
+    senderPicture = clientUser.profilePicture;
+  } else {
+    receiverId = clientId;
+    senderName = freelancerUser.name;
+    senderPicture = freelancerUser.profilePicture;
   }
 
   // Create message object for persistence
@@ -83,6 +108,7 @@ const sendMessage = async (
     senderId: new Types.ObjectId(senderId),
     content,
     attachments: parsedAttachments,
+    readAt: null,
     createdAt: new Date(),
   };
 
@@ -99,19 +125,46 @@ const sendMessage = async (
     createdAt: new Date(),
   };
 
-  // Trigger Pusher
-  console.log(
-    "Triggering Pusher event:",
-    `chat-${chatId}`,
-    "new-message",
-    messageForPusher
-  );
+  // Trigger Chat Update
   try {
     await pusher.trigger(`chat-${chatId}`, "new-message", messageForPusher);
-    console.log("Pusher event triggered successfully");
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error("Pusher trigger failed:", error);
+    console.error("Pusher chat trigger failed:", error);
+  }
+
+  // Trigger Notification to Receiver
+  try {
+    const notificationData = {
+      type: "message",
+      chatId,
+      senderId,
+      senderName,
+      senderPicture,
+      content:
+        content ||
+        (parsedAttachments?.length ? "Sent an attachment" : "Sent a message"),
+      createdAt: new Date(),
+    };
+
+    // 1. Create persistent notification in DB
+    await NotificationService.createNotification({
+      userId: receiverId,
+      senderId: senderId,
+      type: "message",
+      content: notificationData.content,
+      link: `/messages/${chatId}`, // Generic link, frontend will adapt
+    });
+
+    // 2. Trigger Pusher event
+    await pusher.trigger(
+      `user-${receiverId}`,
+      "notification",
+      notificationData
+    );
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Pusher notification trigger failed:", error);
   }
 
   return messageForPusher;
@@ -125,9 +178,23 @@ const getMyChatRooms = async (userId: string) => {
     .populate("jobId", "title slug")
     .populate("clientId", "name profilePicture") // Populating User fields
     .populate("freelancerId", "name profilePicture") // Populating User fields
-    .sort({ updatedAt: -1 });
+    .sort({ updatedAt: -1 })
+    .lean();
 
-  return chats;
+  const chatsWithUnread = chats.map((chat: any) => {
+    const unreadCount = chat.messages.filter(
+      (m: any) => !m.readAt && m.senderId.toString() !== userId
+    ).length;
+    // Don't send all messages list to list view to save bandwidth, just count?
+    // Frontend ChatList doesn't display messages, only last message maybe?
+    // Existing ChatList displays: {chat.jobId?.title} but no message preview?
+    // ChatList.tsx checks otherUser.
+    // It seems safe to return all properties, but ideally we should strip messages for list.
+    // But let's keep it simple and just add unreadCount.
+    return { ...chat, unreadCount };
+  });
+
+  return chatsWithUnread;
 };
 
 const getChatDetails = async (chatId: string, userId: string) => {
@@ -163,10 +230,30 @@ const triggerTyping = async (chatId: string, userId: string) => {
   await pusher.trigger(`chat-${chatId}`, "typing", { userId });
 };
 
+const markMessagesAsRead = async (chatId: string, userId: string) => {
+  const chat = await ChatRoom.findById(chatId);
+  if (!chat) throw new AppError(404, "Chat not found");
+
+  // Update readAt for messages not sent by user
+  let updated = false;
+  chat.messages.forEach((msg: any) => {
+    if (msg.senderId.toString() !== userId && !msg.readAt) {
+      msg.readAt = new Date();
+      updated = true;
+    }
+  });
+
+  if (updated) {
+    await chat.save();
+  }
+  return true;
+};
+
 export const chatService = {
   createChatRoom,
   sendMessage,
   getMyChatRooms,
   getChatDetails,
   triggerTyping,
+  markMessagesAsRead,
 };

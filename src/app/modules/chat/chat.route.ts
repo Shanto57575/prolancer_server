@@ -31,4 +31,10 @@ router.post(
   chatController.triggerTyping
 );
 
+router.patch(
+  "/:chatId/read",
+  checkAuth(UserRole.CLIENT, UserRole.FREELANCER),
+  chatController.markMessagesAsRead
+);
+
 export const chatRoutes = router;

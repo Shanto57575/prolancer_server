@@ -10,6 +10,7 @@ export interface IMessage {
     type: string;
     size?: number;
   }[];
+  readAt?: Date;
   createdAt?: Date;
 }
 
