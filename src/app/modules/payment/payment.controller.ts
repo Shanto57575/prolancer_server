@@ -19,20 +19,38 @@ const createCheckoutSession = catchAsync(
   }
 );
 
-const handleWebhook = catchAsync(async (req: Request, res: Response) => {
-  const signature = req.headers["stripe-signature"] as string;
-  // Use raw body in app.ts for this route
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const request = req as any;
-  if (!request.rawBody) throw new Error("Raw body missing for webhook");
-  await PaymentService.handleWebhook(signature, request.rawBody);
+const handleWebhook = async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers["stripe-signature"] as string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const request = req as any;
 
-  sendResponse(res, {
-    statusCode: 200,
-    success: true,
-    message: "Webhook received",
-  });
-});
+    if (!request.rawBody) {
+      return res.status(400).json({ error: "Raw body missing for webhook" });
+    }
+
+    // Verify signature first - if this fails, return 400 immediately
+    const isValid = await PaymentService.verifyWebhookSignature(
+      signature,
+      request.rawBody
+    );
+
+    if (!isValid) {
+      return res.status(400).json({ error: "Invalid signature" });
+    }
+
+    // Send 200 OK immediately to Stripe
+    res.status(200).json({ received: true });
+
+    // Process webhook asynchronously (don't await)
+    PaymentService.processWebhook(signature, request.rawBody).catch((err) => {
+      console.error("Webhook processing error:", err);
+    });
+  } catch (error) {
+    console.error("Webhook handler error:", error);
+    res.status(400).json({ error: "Webhook handler failed" });
+  }
+};
 
 const getPaymentHistory = catchAsync(async (req: Request, res: Response) => {
   const result = await PaymentService.getPaymentHistory(req.query);
@@ -61,15 +79,17 @@ const verifySession = catchAsync(async (req: Request, res: Response) => {
     throw new Error("Session ID is required");
   }
 
-  const isPaid = await PaymentService.verifySession(sessionId);
+  const result = await PaymentService.verifySession(sessionId);
 
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: isPaid
-      ? "Payment verification successful"
+    message: result.isPaid
+      ? result.processed
+        ? "Payment verified successfully"
+        : "Payment completed, processing..."
       : "Payment not completed",
-    data: { isPaid },
+    data: result,
   });
 });
 

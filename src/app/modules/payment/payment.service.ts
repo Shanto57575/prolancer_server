@@ -79,10 +79,38 @@ const createCheckoutSession = async (
     },
   });
 
+  // Create pending payment record BEFORE redirecting user
+  await Payment.create({
+    userId: user._id,
+    stripeSessionId: session.id,
+    amount: selectedPrice.amount,
+    currency: "usd",
+    plan,
+    status: "pending",
+  });
+
   return { sessionId: session.id, url: session.url };
 };
 
-const handleWebhook = async (signature: string, payload: Buffer) => {
+const verifyWebhookSignature = async (
+  signature: string,
+  payload: Buffer
+): Promise<boolean> => {
+  try {
+    stripe.webhooks.constructEvent(
+      payload,
+      signature,
+      envConfig.STRIPE_WEBHOOK_SECRET as string
+    );
+    return true;
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error(`Webhook signature verification failed: ${error.message}`);
+    return false;
+  }
+};
+
+const processWebhook = async (signature: string, payload: Buffer) => {
   let event: Stripe.Event;
 
   try {
@@ -91,16 +119,45 @@ const handleWebhook = async (signature: string, payload: Buffer) => {
       signature,
       envConfig.STRIPE_WEBHOOK_SECRET as string
     );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    throw new AppError(400, `Webhook Error: ${err.message}`);
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error(`Webhook Error: ${error.message}`);
+    return;
   }
+
+  // Check if event already processed (true idempotency using event.id)
+  const { StripeEvent } = await import("./stripe-event.model");
+  const existingEvent = await StripeEvent.findOne({ eventId: event.id });
+
+  if (existingEvent) {
+    console.log(`Event ${event.id} already processed. Skipping duplicate.`);
+    return;
+  }
+
+  // Record event as processed
+  const eventData = {
+    eventId: event.id,
+    eventType: event.type,
+    processed: true,
+    ...(event.type === "checkout.session.completed" && {
+      sessionId: (event.data.object as Stripe.Checkout.Session).id,
+    }),
+  };
+
+  await StripeEvent.create(
+    eventData as unknown as Parameters<typeof StripeEvent.create>[0]
+  );
 
   // Handle the event
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       await handleSubscriptionSuccess(session);
+      break;
+    }
+    case "payment_intent.succeeded": {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      console.log(`Payment intent succeeded: ${paymentIntent.id}`);
       break;
     }
     case "invoice.payment_succeeded":
@@ -116,32 +173,68 @@ const handleSubscriptionSuccess = async (session: Stripe.Checkout.Session) => {
   const userId = session.metadata?.userId;
   const plan = session.metadata?.plan as SubscriptionPlan;
 
-  if (userId && plan) {
-    const user = await User.findById(userId);
-    if (user) {
-      user.isPremium = true;
-      user.subscriptionPlan = plan;
-      // Set end date to 1 month/year from now (approx, webhook typically handles exact periods)
-      const now = new Date();
-      if (plan === SubscriptionPlan.YEARLY) {
-        now.setFullYear(now.getFullYear() + 1);
-      } else {
-        now.setMonth(now.getMonth() + 1);
-      }
-      user.subscriptionEndDate = now;
-      await user.save();
-
-      // Create Payment Record for Admin
-      await Payment.create({
-        userId,
-        stripeSessionId: session.id,
-        amount: session.amount_total || 0,
-        currency: session.currency || "usd",
-        plan,
-        status: session.payment_status,
-      });
-    }
+  if (!userId || !plan) {
+    console.error("Missing userId or plan in session metadata");
+    return;
   }
+
+  // Idempotency check: Prevent duplicate processing
+  const existingPayment = await Payment.findOne({
+    stripeSessionId: session.id,
+  });
+
+  if (existingPayment && existingPayment.status === "succeeded") {
+    console.log(
+      `Payment session ${session.id} already processed. Skipping duplicate.`
+    );
+    return;
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    console.error(`User ${userId} not found for payment session ${session.id}`);
+    return;
+  }
+
+  // Update user subscription
+  user.isPremium = true;
+  user.subscriptionPlan = plan;
+  // Set end date to 1 month/year from now (approx, webhook typically handles exact periods)
+  const now = new Date();
+  if (plan === SubscriptionPlan.YEARLY) {
+    now.setFullYear(now.getFullYear() + 1);
+  } else {
+    now.setMonth(now.getMonth() + 1);
+  }
+  user.subscriptionEndDate = now;
+  await user.save();
+
+  // Update existing pending payment or create new one
+  if (existingPayment) {
+    existingPayment.status = "succeeded";
+    existingPayment.amount = session.amount_total || 0;
+    await existingPayment.save();
+    console.log(
+      `Updated payment ${existingPayment._id} to succeeded for session ${session.id}`
+    );
+  } else {
+    // Fallback: create new payment record if pending wasn't created
+    await Payment.create({
+      userId,
+      stripeSessionId: session.id,
+      amount: session.amount_total || 0,
+      currency: session.currency || "usd",
+      plan,
+      status: "succeeded",
+    });
+    console.log(
+      `Created new payment record for session ${session.id} (pending record missing)`
+    );
+  }
+
+  console.log(
+    `Successfully processed payment for user ${userId}, session ${session.id}`
+  );
 };
 
 const getPaymentHistory = async (query: Record<string, unknown>) => {
@@ -190,18 +283,27 @@ const getMyPayments = async (
 };
 
 const verifySession = async (sessionId: string) => {
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  // SECURITY: Only trust database, never Stripe API
+  const existingPayment = await Payment.findOne({
+    stripeSessionId: sessionId,
+  });
 
-  if (session.payment_status === "paid") {
-    await handleSubscriptionSuccess(session);
-    return true;
+  if (!existingPayment) {
+    // No payment record = not paid
+    return { isPaid: false, processed: false };
   }
-  return false;
+
+  // Check database status only
+  return {
+    isPaid: existingPayment.status === "succeeded",
+    processed: existingPayment.status === "succeeded",
+  };
 };
 
 export const PaymentService = {
   createCheckoutSession,
-  handleWebhook,
+  verifyWebhookSignature,
+  processWebhook,
   getPaymentHistory,
   getMyPayments,
   verifySession,
