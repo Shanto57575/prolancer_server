@@ -8,6 +8,7 @@ import { Application } from "./application.model";
 import modelQuery from "../../utils/modelQuery";
 import { JobStatus } from "../job/job.constant";
 import { ApplicationStatus } from "./application.interface";
+import User from "../user/user.model";
 
 const createApplication = async (payload: {
   userId: string;
@@ -58,15 +59,34 @@ const createApplication = async (payload: {
     throw new AppError(400, "You have already applied for this job");
   }
 
-  // 5. Create Application (Sequential, no transaction for dev env stability)
-  // 5. Create Application (Sequential, no transaction for dev env stability)
+  // 5. Check Application Limit (Subscription)
+  const user = await User.findById(userId);
+  if (!user?.isPremium) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const applicationCount = await Application.countDocuments({
+      freelancerId: freelancer._id,
+      createdAt: { $gte: startOfMonth },
+    });
+
+    if (applicationCount >= 5) {
+      throw new AppError(
+        403,
+        "Free Plan Limit Reached: You can only apply to 5 jobs per month. Upgrade to Pro for unlimited applications."
+      );
+    }
+  }
+
+  // 6. Create Application (Sequential, no transaction for dev env stability)
   const application = await Application.create({
     jobId,
     freelancerId: freelancer._id,
     status: "pending",
   });
 
-  // 6. Update Job Stats
+  // 7. Update Job Stats
   if (application) {
     await Job.findByIdAndUpdate(jobId, {
       $push: { applicants: userId },

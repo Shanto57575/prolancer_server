@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { Provider, UserRole } from "../../constants/enums";
-import { IAuthProvider, IUser } from "./user.interface";
+import { IAuthProvider, IUser, SubscriptionPlan } from "./user.interface";
 
 const AuthProviderSchema = new Schema<IAuthProvider>(
   {
@@ -32,6 +32,15 @@ const UserSchema = new Schema<IUser>(
       type: [AuthProviderSchema],
       default: [],
     },
+    // Subscription Fields
+    isPremium: { type: Boolean, default: false },
+    subscriptionPlan: {
+      type: String,
+      enum: Object.values(SubscriptionPlan),
+      default: SubscriptionPlan.FREE,
+    },
+    subscriptionEndDate: { type: Date },
+    stripeCustomerId: { type: String, select: false },
   },
   { timestamps: true }
 );

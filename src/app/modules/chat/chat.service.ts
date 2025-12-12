@@ -12,7 +12,14 @@ const createChatRoom = async (
   freelancerId: string // This is Freelancer Model ID (from Application)
 ) => {
   // 1. Get Freelancer User ID
-  const freelancer = await Freelancer.findById(freelancerId);
+  const isIdValid = Types.ObjectId.isValid(freelancerId);
+  const freelancer = await Freelancer.findOne({
+    $or: [
+      ...(isIdValid ? [{ _id: freelancerId }] : []),
+      { userId: freelancerId },
+    ],
+  });
+
   if (!freelancer) throw new AppError(404, "Freelancer not found");
 
   const freelancerUserId = freelancer.userId.toString();
@@ -76,9 +83,9 @@ const sendMessage = async (
   if (!chat) throw new AppError(404, "Chat room not found");
 
   // Verify participation
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const clientUser = chat.clientId as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const freelancerUser = chat.freelancerId as any;
 
   const clientId = clientUser._id.toString();
@@ -129,7 +136,6 @@ const sendMessage = async (
   try {
     await pusher.trigger(`chat-${chatId}`, "new-message", messageForPusher);
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Pusher chat trigger failed:", error);
   }
 
@@ -163,7 +169,6 @@ const sendMessage = async (
       notificationData
     );
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Pusher notification trigger failed:", error);
   }
 
@@ -206,9 +211,9 @@ const getChatDetails = async (chatId: string, userId: string) => {
   if (!chat) throw new AppError(404, "Chat room not found");
 
   // Robust null checks for populated fields (in case user/client deleted)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const clientUser = chat.clientId as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const freelancerUser = chat.freelancerId as any;
 
   // Fallback to ID string if population failed or returned null (shouldn't happen with valid constraint, but safe)

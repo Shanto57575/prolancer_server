@@ -6,6 +6,12 @@ export enum UserRole {
   FREELANCER = "FREELANCER",
 }
 
+export enum SubscriptionPlan {
+  FREE = "FREE",
+  MONTHLY = "MONTHLY",
+  YEARLY = "YEARLY",
+}
+
 export interface IAuthProvider {
   provider: string;
   providerId: string;
@@ -21,4 +27,9 @@ export interface IUser extends Document {
   isBanned: boolean;
   authProviders: IAuthProvider[];
   profilePicture?: string;
+  // Subscription fields
+  isPremium: boolean;
+  subscriptionPlan: SubscriptionPlan;
+  subscriptionEndDate?: Date;
+  stripeCustomerId?: string;
 }

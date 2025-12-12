@@ -11,7 +11,14 @@ import morgan from "morgan";
 
 const app: Application = express();
 
-app.use(express.json());
+app.use(
+  express.json({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    verify: (req: any, _res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -35,8 +42,7 @@ app.use(morgan("dev"));
 app.get("/", (_req, res) => {
   res.status(200).json({
     success: true,
-    message: "Skill-Trade API is running 🚀",
-    port: envConfig.PORT,
+    message: "Prolancer API is running 🚀",
     timestamp: new Date().toISOString(),
   });
 });

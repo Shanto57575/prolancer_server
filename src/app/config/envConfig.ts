@@ -18,6 +18,8 @@ interface EnvConfig {
   PUSHER_KEY: string;
   PUSHER_SECRET: string;
   PUSHER_CLUSTER: string;
+  STRIPE_SECRET_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -37,6 +39,8 @@ const loadEnvVariables = (): EnvConfig => {
     "PUSHER_KEY",
     "PUSHER_SECRET",
     "PUSHER_CLUSTER",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
   ];
 
   requiredVariables.forEach((variable) => {
@@ -61,6 +65,8 @@ const loadEnvVariables = (): EnvConfig => {
     PUSHER_KEY: process.env.PUSHER_KEY as string,
     PUSHER_SECRET: process.env.PUSHER_SECRET as string,
     PUSHER_CLUSTER: process.env.PUSHER_CLUSTER as string,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY as string,
+    STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET as string,
   };
 };
 

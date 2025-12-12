@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-import { envConfig } from "../app/config/envConfig";
-import User from "../app/modules/user/user.model";
-import { Provider, UserRole } from "../app/constants/enums";
+import { envConfig } from "../../app/config/envConfig";
+import User from "../../app/modules/user/user.model";
+import { Provider, UserRole } from "../../app/constants/enums";
 
 (async () => {
   try {

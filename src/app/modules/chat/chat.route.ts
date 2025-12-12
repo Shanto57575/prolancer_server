@@ -23,7 +23,11 @@ router.post(
   chatController.sendMessage
 );
 
-router.post("/", checkAuth(UserRole.CLIENT), chatController.createChat);
+router.post(
+  "/",
+  checkAuth(UserRole.CLIENT, UserRole.FREELANCER),
+  chatController.createChat
+);
 
 router.post(
   "/:chatId/typing",

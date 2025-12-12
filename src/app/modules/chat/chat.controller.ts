@@ -50,10 +50,26 @@ const getChatDetails = catchAsync(async (req: Request, res: Response) => {
 });
 
 const createChat = catchAsync(async (req: Request, res: Response) => {
-  const { jobId, freelancerId } = req.body;
-  const userId = req.user.id as string; // This is the Client ID
+  const { jobId, freelancerId, clientId } = req.body;
+  const userId = req.user.id as string;
+  const role = req.user.role;
 
-  const result = await chatService.createChatRoom(jobId, userId, freelancerId);
+  let finalClientId = clientId;
+  let finalFreelancerId = freelancerId;
+
+  if (role === "CLIENT") {
+    finalClientId = userId;
+    finalFreelancerId = freelancerId;
+  } else if (role === "FREELANCER") {
+    finalClientId = clientId;
+    finalFreelancerId = userId;
+  }
+
+  const result = await chatService.createChatRoom(
+    jobId,
+    finalClientId,
+    finalFreelancerId
+  );
 
   sendResponse(res, {
     statusCode: 201,
