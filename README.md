@@ -1,37 +1,39 @@
-## FILE: `backend/README.md`
+# 🚀 **ProLancer Backend – REST API**
 
-````markdown
-# ProLancer — Backend (MERN Backend, TypeScript, Node.js, Express, Mongoose)
+A scalable backend for a freelance job marketplace (similar to Upwork/Fiverr) built with **Node.js, Express.js, TypeScript, MongoDB, Stripe, and Pusher**.
 
-## Tech
+---
 
-- Node.js (v18+ recommended)
-- TypeScript
-- Express.js
-- Mongoose (MongoDB)
-- JWT (access + refresh token rotation)
-- bcrypt
-- Stripe (server-side keys + webhooks)
-- Pusher (server for realtime events)
+## 🛠️ **Tech Stack**
 
-## Quick setup (paste into terminal)
+- **Node.js + Express.js**
+- **TypeScript**
+- **MongoDB + Mongoose**
+- **JWT Authentication** (Access + Refresh token rotation)
+- **bcrypt** for password hashing
+- **Stripe** (Checkout Sessions + Webhooks)
+- **Pusher** for realtime messaging
+
+---
+
+## ⚡ Quick Setup
 
 ```bash
-# from project root
 cd backend
 npm install
-# run dev with ts-node/ts-node-dev or nodemon + ts-node
-npm run dev
+npm run seed:admin   # Seeds default admin user
+npm run dev          # Starts development server
 ```
-````
 
-## `.env` (paste)
+---
+
+## 🔐 Environment Variables (`.env`)
 
 ```env
 PORT=5000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
-DATABASE_URL=mongodb://localhost:27017/prolancer
+DATABASE_URL=your_mongodb_uri
 
 # Admin seeding
 ADMIN_EMAIL=admin@example.com
@@ -55,100 +57,75 @@ STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
-## package.json scripts (example)
+> **Note:** `DATABASE_URL` should be a MongoDB Atlas URI.
 
-```json
-{
-  "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "seed:admin": "ts-node src/tools/seedAdmin.ts"
-  }
-}
-```
+---
 
-## tsconfig (minimal)
+## 📌 Important API Endpoints
 
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true
-  }
-}
-```
-
-## Folder structure (recommended)
-
-```
-backend/
-├─ src/
-│  ├─ controllers/
-│  ├─ routes/
-│  ├─ services/        # business logic (stripe, pusher)
-│  ├─ models/          # mongoose schemas
-│  ├─ middlewares/     # auth, errorHandler, validate
-│  ├─ utils/           # helpers (token, logger)
-│  ├─ config/          # db, pusher, stripe init
-│  ├─ types/           # TS interfaces
-│  └─ server.ts        # app bootstrap
-└─ .env
-```
-
-## Important endpoints (copy to routes)
+### 🔑 **Auth**
 
 - `POST /auth/login`
 - `POST /auth/refresh-token`
+
+### 👤 **User**
+
 - `POST /user/register`
-- `GET /user/me` `PATCH /user/me`
-- Job routes: `POST /jobs`, `GET /jobs`, `GET /jobs/:slug` etc.
-- Applications: `POST /applications`, `PATCH /applications/:id/status`
-- Chat: `POST /chats`, `GET /chats/my-chats`, `POST /chats/:chatId/messages`
-- Payment: `POST /payment/create-checkout-session`, `POST /payment/webhook`
+- `GET /user/me`
+- `PATCH /user/me`
 
-## Stripe webhook notes
+### 💼 **Jobs**
 
-- Use `STRIPE_WEBHOOK_SECRET` to verify signatures in `/payment/webhook`.
-- For local dev, the Stripe CLI can forward events to your local server.
+- `POST /jobs`
+- `GET /jobs`
+- `GET /jobs/:slug`
 
-## JWT / Auth best practices (quick)
+### 📨 **Applications**
 
-1. Use short-lived access tokens (e.g. 15m or 1d depending on risk) and rotate refresh tokens.
-2. Store refresh tokens in db (hashed) and set httpOnly secure cookie for browser clients.
-3. Protect routes with `authMiddleware` that verifies access token and loads `req.user`.
+- `POST /applications`
+- `PATCH /applications/:id/status`
 
-## Pusher (server)
+### 💬 **Chat**
 
-- Initialize Pusher with `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_APP_ID`, and `PUSHER_CLUSTER`.
-- Emit events on chat create/message and on notifications.
+- `POST /chats`
+- `GET /chats/my-chats`
+- `POST /chats/:chatId/messages`
 
-## Admin seeding script (quick)
+### 💳 **Payments**
 
-Create `src/tools/seedAdmin.ts` that reads `ADMIN_EMAIL` and `ADMIN_PASSWORD` and upserts an admin user into DB.
+- `POST /payment/create-checkout-session`
+- `POST /payment/webhook`
 
-## Start example (server.ts)
+---
 
-```ts
-import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
-const app = express();
-app.use(express.json());
-// register routes here
-mongoose.connect(process.env.DATABASE_URL!).then(() => {
-  app.listen(process.env.PORT || 5000, () => console.log("Server running"));
-});
+## 💰 Stripe Webhook Notes
+
+- Incoming webhook events must be verified using `STRIPE_WEBHOOK_SECRET`.
+- For local development, use the Stripe CLI:
+
+```bash
+stripe listen --forward-to localhost:5000/payment/webhook
 ```
 
-## Notes
+---
 
-- Keep Stripe secret key server-side only.
-- For production webhooks, point Stripe to `https://yourdomain.com/api/v1/payment/webhook` and set the `STRIPE_WEBHOOK_SECRET`.
-- Use helmet, cors (restrict to FRONTEND_URL), rate-limit, and input validation (zod or Joi).
+## 📡 Realtime Messaging (Pusher)
+
+Used for:
+
+- New message events
+- Chat updates
+- Notifications
+
+---
+
+## 🧱 Project Features (Summary)
+
+- Secure authentication with **token rotation**
+- Admin seeding script
+- Modular folder structure with TypeScript
+- Realtime chat using Pusher
+- Stripe checkout & webhook handling
+- Scalable architecture suitable for production
+
+[![Live Server](https://img.shields.io/badge/Live-Server-green?style=for-the-badge)](https://prolancers-six.vercel.app)
