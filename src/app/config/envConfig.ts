@@ -20,6 +20,8 @@ interface EnvConfig {
   PUSHER_CLUSTER: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_CLIENT_SECRET: string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -41,6 +43,8 @@ const loadEnvVariables = (): EnvConfig => {
     "PUSHER_CLUSTER",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
   ];
 
   requiredVariables.forEach((variable) => {
@@ -67,6 +71,8 @@ const loadEnvVariables = (): EnvConfig => {
     PUSHER_CLUSTER: process.env.PUSHER_CLUSTER as string,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY as string,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET as string,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
   };
 };
 
