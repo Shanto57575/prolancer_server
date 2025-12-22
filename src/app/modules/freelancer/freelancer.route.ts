@@ -17,16 +17,10 @@ router.patch(
   freelancerController.updateFreelancerProfile
 );
 
-router.get(
-  "/all-freelancers",
-  checkAuth(UserRole.ADMIN),
-  freelancerController.getAllFreelancers
-);
+router.get("/public", freelancerController.getPublicFreelancers);
 
-router.get(
-  "/:id",
-  checkAuth(UserRole.ADMIN),
-  freelancerController.getFreelancerById
-);
+router.get("/all-freelancers", freelancerController.getAllFreelancers);
+
+router.get("/:id", freelancerController.getFreelancerById);
 
 export const freelancerRoute = router;

@@ -123,9 +123,55 @@ const getAllFreelancers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPublicFreelancers = catchAsync(async (req: Request, res: Response) => {
+  const {
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+    search,
+    skill,
+    location,
+    minRate,
+    maxRate,
+  } = req.query;
+
+  const queryOptions = {
+    page: Number(page) || 1,
+    limit: Number(limit) || 20,
+    sortBy: (sortBy as string) || "createdAt",
+    sortOrder: (sortOrder as string) || "desc",
+    search: (search as string) || undefined,
+    filters: {
+      skill: skill as string | undefined,
+      location: location as string | undefined,
+      minRate: minRate !== undefined ? Number(minRate) : undefined,
+      maxRate: maxRate !== undefined ? Number(maxRate) : undefined,
+      isProfileComplete: true,
+    },
+    populate: [
+      {
+        path: "userId",
+        select: "name email profilePicture",
+      },
+    ],
+  };
+
+  const result = await freelancerService.getAll(queryOptions);
+
+  return sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Public freelancers list retrieved",
+    meta: result?.meta,
+    data: result?.data,
+  });
+});
+
 export const freelancerController = {
   getMyFreelancerProfile,
   updateFreelancerProfile,
   getFreelancerById,
   getAllFreelancers,
+  getPublicFreelancers,
 };

@@ -66,6 +66,7 @@ const getAll = async (options: any) => {
       location: options.filters?.location,
       min_hourlyRate: options.filters?.minRate,
       max_hourlyRate: options.filters?.maxRate,
+      isProfileComplete: options.filters?.isProfileComplete,
     },
   });
 };
