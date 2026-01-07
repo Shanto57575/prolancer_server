@@ -6,7 +6,7 @@ import { chatService } from "./chat.service";
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const { chatId } = req.params;
   const { content, attachments } = req.body;
-  const userId = req.user.id as string; // From authMiddleware
+  const userId = req.user.id as string;
 
   const result = await chatService.sendMessage(
     chatId as string,

@@ -9,9 +9,8 @@ import { NotificationService } from "../notification/notification.service";
 const createChatRoom = async (
   jobId: string,
   clientId: string,
-  freelancerId: string // This is Freelancer Model ID (from Application)
+  freelancerId: string
 ) => {
-  // 1. Get Freelancer User ID
   const isIdValid = Types.ObjectId.isValid(freelancerId);
   const freelancer = await Freelancer.findOne({
     $or: [
@@ -28,7 +27,7 @@ const createChatRoom = async (
 
   // 2. Check overlap
   const existingChat = await ChatRoom.findOne({
-    jobId: jobObjectId,
+    clientId: clientUserId,
     freelancerId: freelancerUserId,
   });
 
@@ -61,14 +60,10 @@ const sendMessage = async (
     throw new AppError(400, "Message must have content or attachments");
   }
 
-  console.log("Service received attachments:", typeof attachments, attachments);
-
-  // Parse attachments if they come as a string (shouldn't happen but let's be safe)
   let parsedAttachments = attachments;
   if (typeof attachments === "string") {
     try {
       parsedAttachments = JSON.parse(attachments);
-      console.log("Parsed stringified attachments:", parsedAttachments);
     } catch (e) {
       console.error("Failed to parse attachments:", e);
       parsedAttachments = [];
@@ -81,8 +76,6 @@ const sendMessage = async (
     .populate("freelancerId", "name profilePicture");
 
   if (!chat) throw new AppError(404, "Chat room not found");
-
-  // Verify participation
 
   const clientUser = chat.clientId as any;
 
