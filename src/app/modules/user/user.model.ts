@@ -25,8 +25,7 @@ const UserSchema = new Schema<IUser>(
       enum: Object.values(UserRole),
       default: UserRole.CLIENT,
     },
-    //for simplicity keeping all users verified later will implement email/otp verification
-    isVerified: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: false },
     isBanned: { type: Boolean, default: false },
     authProviders: {
       type: [AuthProviderSchema],

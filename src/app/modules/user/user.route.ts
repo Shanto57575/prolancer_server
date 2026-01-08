@@ -9,7 +9,6 @@ router.post("/register", userController.registerController);
 router.get("/me", checkAuth(), userController.getMyProfileController);
 router.patch("/me", checkAuth(), userController.updateMyProfileController);
 
-// Admin routes
 router.get(
   "/",
   checkAuth(UserRole.ADMIN),
