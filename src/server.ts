@@ -1,8 +1,7 @@
-import mongoose from "mongoose";
 import app from "./app";
-import { envConfig } from "./app/config/envConfig";
 import { Server } from "http";
-
+import mongoose from "mongoose";
+import { envConfig } from "./app/config/envConfig";
 import { initJobCron } from "./app/modules/job/job.cron";
 
 let server: Server;
@@ -20,7 +19,6 @@ const connectDB = async () => {
 const startServer = async () => {
   await connectDB();
 
-  // Init Cron Jobs
   initJobCron();
 
   server = app.listen(envConfig.PORT, () => {

@@ -10,6 +10,7 @@ import { chatRoutes } from "../modules/chat/chat.route";
 import { NotificationRoutes } from "../modules/notification/notification.route";
 import { dashboardRoutes } from "../modules/dashboard/dashboard.route";
 import { PaymentRoutes } from "../modules/payment/payment.route";
+import { OtpRoutes } from "../modules/otp/otp.route";
 
 const router = express.Router();
 
@@ -58,6 +59,10 @@ const moduleRoutes = [
   {
     path: "/payment",
     router: PaymentRoutes,
+  },
+  {
+    path: "/otp",
+    router: OtpRoutes,
   },
 ];
 

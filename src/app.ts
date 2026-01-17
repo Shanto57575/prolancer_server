@@ -2,18 +2,14 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
-// import { auth } from "./app/utils/auth";
 import express, { Application } from "express";
 import router from "./app/routes/router";
 import cookieParser from "cookie-parser";
 import { envConfig } from "./app/config/envConfig";
 import { notFound } from "./app/middlewares/notFound";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
-// import { toNodeHandler } from "better-auth/node";
 
 const app: Application = express();
-
-// app.use("/api/auth/:path*", toNodeHandler(auth));
 
 app.use(
   express.json({

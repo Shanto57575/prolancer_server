@@ -3,7 +3,6 @@ import Job from "./job.model";
 import { JobStatus } from "./job.constant";
 
 export const initJobCron = () => {
-  // Run every hour
   cron.schedule("0 * * * *", async () => {
     try {
       const now = new Date();
