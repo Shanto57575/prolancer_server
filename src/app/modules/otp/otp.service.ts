@@ -22,6 +22,8 @@ const sendOTPService = async (email: string, name: string) => {
     throw new AppError(409, "You Are already Verified");
   }
 
+  const displayName = (name && name.trim()) || user.name || "User";
+
   const otp = generateOtp();
 
   const redisKey = `otp:${email}`;
@@ -38,7 +40,7 @@ const sendOTPService = async (email: string, name: string) => {
     subject: "Verify your Prolancer Account - OTP Code",
     templateName: "otp",
     templateData: {
-      name: name,
+      name: displayName,
       otp: otp,
     },
   });

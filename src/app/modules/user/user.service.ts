@@ -15,15 +15,18 @@ const registerService = async (payload: IUser) => {
   session.startTransaction();
 
   try {
-    const { email, password } = payload;
+    const { name, email, password } = payload;
+
+    if (!name || !email || !password) {
+      throw new AppError(400, "All fields are required!");
+    }
+
     const isUserExists = await User.findOne({ email });
 
     if (isUserExists) {
-      // Check if user exists but not verified
       if (!isUserExists.isVerified) {
         await session.abortTransaction();
         session.endSession();
-        // Return special error to indicate unverified user
         const error = new AppError(400, "Please verify your email to complete registration");
         (error as any).code = "UNVERIFIED_USER";
         (error as any).email = email;
@@ -84,12 +87,10 @@ const registerService = async (payload: IUser) => {
     await session.commitTransaction();
     session.endSession();
 
-    // Auto-send OTP after successful registration
     try {
       await otpService.sendOTPService(userDoc.email, userDoc.name);
     } catch (otpError) {
       console.error("Failed to send OTP after registration:", otpError);
-      // Don't fail registration if OTP sending fails, user can request it manually
     }
 
     return userDoc;
@@ -144,7 +145,6 @@ const updateMyProfile = async (
   return user;
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const getAllUsers = async (options: {
   page?: number;
   limit?: number;
