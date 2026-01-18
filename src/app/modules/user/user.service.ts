@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose from "mongoose";
 import { envConfig } from "../../config/envConfig";
 import { Provider, UserRole } from "../../constants/enums";
@@ -7,6 +8,7 @@ import Freelancer from "../freelancer/freelancer.model";
 import { IUser } from "./user.interface";
 import User from "./user.model";
 import bcrypt from "bcrypt";
+import { otpService } from "../otp/otp.service";
 
 const registerService = async (payload: IUser) => {
   const session = await mongoose.startSession();
@@ -17,6 +19,16 @@ const registerService = async (payload: IUser) => {
     const isUserExists = await User.findOne({ email });
 
     if (isUserExists) {
+      // Check if user exists but not verified
+      if (!isUserExists.isVerified) {
+        await session.abortTransaction();
+        session.endSession();
+        // Return special error to indicate unverified user
+        const error = new AppError(400, "Please verify your email to complete registration");
+        (error as any).code = "UNVERIFIED_USER";
+        (error as any).email = email;
+        throw error;
+      }
       throw new AppError(400, "User already exists! please login");
     }
 
@@ -72,6 +84,14 @@ const registerService = async (payload: IUser) => {
     await session.commitTransaction();
     session.endSession();
 
+    // Auto-send OTP after successful registration
+    try {
+      await otpService.sendOTPService(userDoc.email, userDoc.name);
+    } catch (otpError) {
+      console.error("Failed to send OTP after registration:", otpError);
+      // Don't fail registration if OTP sending fails, user can request it manually
+    }
+
     return userDoc;
   } catch (error) {
     await session.abortTransaction();
@@ -104,7 +124,6 @@ const updateMyProfile = async (
   payload: { name?: string; profilePicture?: string }
 ) => {
   const allowedFields = ["name", "profilePicture"];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateData: Record<string, any> = {};
 
   for (const field of allowedFields) {

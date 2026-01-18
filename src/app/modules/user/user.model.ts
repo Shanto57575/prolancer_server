@@ -31,7 +31,6 @@ const UserSchema = new Schema<IUser>(
       type: [AuthProviderSchema],
       default: [],
     },
-    // Subscription Fields
     isPremium: { type: Boolean, default: false },
     subscriptionPlan: {
       type: String,

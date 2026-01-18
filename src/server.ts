@@ -3,6 +3,7 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import { envConfig } from "./app/config/envConfig";
 import { initJobCron } from "./app/modules/job/job.cron";
+import { connectRedis } from "./app/config/redis.config";
 
 let server: Server;
 
@@ -26,7 +27,10 @@ const startServer = async () => {
   });
 };
 
-startServer();
+(async()=>{
+  await startServer();
+  await connectRedis()
+})()
 
 const shutdown = async (reason: string) => {
   console.log("🔻 Shutting down:", reason);

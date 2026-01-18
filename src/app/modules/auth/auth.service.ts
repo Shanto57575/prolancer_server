@@ -19,6 +19,10 @@ const loginService = async (payload: IUser) => {
     throw new AppError(400, "User does not exist!");
   }
 
+  if (!isUserExists.isVerified) {
+    throw new AppError(400, "Please verify your email before logging in!");
+  }
+
   const isPasswordMatched = await bcrypt.compare(
     password,
     isUserExists.password as string

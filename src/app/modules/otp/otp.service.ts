@@ -35,7 +35,7 @@ const sendOTPService = async (email: string, name: string) => {
 
   await sendEmail({
     to: email,
-    subject: "Your OTP Code",
+    subject: "Verify your Prolancer Account - OTP Code",
     templateName: "otp",
     templateData: {
       name: name,
@@ -68,6 +68,9 @@ const verifyOTPService = async (email: string, otp: string) => {
     User.updateOne({ email }, { isVerified: true }, { runValidators: true }),
     redisClient.del([redisKey]),
   ]);
+
+  const verifiedUser = await User.findOne({ email });
+  return verifiedUser;
 };
 
 export const otpService = {
